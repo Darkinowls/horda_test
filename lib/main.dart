@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:horda_test/home_screen.dart';
-import 'package:horda_test/openai_client.dart';
-
-import 'consts.dart';
+import 'package:horda_test/screens/home_screen.dart';
+import 'core/consts.dart';
+import 'core/openai_client.dart';
 
 late final OpenaiClient _openaiClient;
 

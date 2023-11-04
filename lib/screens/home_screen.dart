@@ -3,9 +3,11 @@ import 'dart:collection';
 import 'package:either_dart/either.dart';
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
-import 'package:horda_test/openai_client.dart';
+import 'package:horda_test/widgets/horda_network_image.dart';
 
-import 'exceptions.dart';
+import '../core/exceptions.dart';
+import '../core/openai_client.dart';
+import '../widgets/error_column.dart';
 
 class HomeScreen extends StatefulWidget {
   final int maxAttempts;
@@ -107,47 +109,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     final Either<HordaException, String> result = snapshot.data!;
     return switch (result) {
-      Left() => _ErrorColumn(error: result.value),
-      Right() => Image.network(
-          result.value,
-          loadingBuilder: buildLoadingImage,
-          errorBuilder: (_, __, ___) =>
-              const _ErrorColumn(error: "Failed to load image"),
-        )
+      Left() => ErrorColumn(error: result.value),
+      Right() => HordaNetworkImage(url: result.value),
     };
-  }
-
-  Widget buildLoadingImage(_, Widget child, ImageChunkEvent? progress) {
-    if (progress == null) return child;
-    return CircularProgressIndicator(
-      value: progress.expectedTotalBytes != null
-          ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
-          : null,
-    );
-  }
-}
-
-class _ErrorColumn extends StatelessWidget {
-  final Object error;
-
-  const _ErrorColumn({required this.error});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(25),
-      color: Colors.grey[300],
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Icon(Icons.error),
-          const SizedBox(
-            height: 25,
-          ),
-          Text(error.toString(), textAlign: TextAlign.center),
-        ],
-      ),
-    );
   }
 }
