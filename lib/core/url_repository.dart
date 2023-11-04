@@ -21,17 +21,20 @@ class UrlRepository {
     final Future<Either<HordaException, String>> futureUrl =
         _openaiClient.generateImageUrl(prompt);
     _futureUrlList[index] = futureUrl;
+    futureUrl.then((Either<HordaException, String> url) {
+      _cachedUrlList[index] = url;
+    });
   }
 
   bool hasCachedUrl(int index) {
     return _cachedUrlList[index] != null;
   }
 
-  Either<HordaException, String> getCachedUrl(int index) {
-    return _cachedUrlList[index]!;
-  }
-
-  void setCachedUrl(int index, Either<HordaException, String> url) {
-    _cachedUrlList[index] = url;
+  Either<HordaException, String> requireCachedUrl(int index) {
+    try {
+      return Right(_cachedUrlList[index]!.right);
+    } catch (e) {
+      return Left(UrlRepoException("No cached url"));
+    }
   }
 }

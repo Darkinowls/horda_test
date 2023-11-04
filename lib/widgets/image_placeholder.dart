@@ -5,10 +5,10 @@ import '../core/exceptions.dart';
 import 'error_column.dart';
 import 'horda_network_image.dart';
 
-class ImagePlaceHolder extends StatelessWidget {
+class ImagePlaceholder extends StatelessWidget {
   final Either<HordaException, String> result;
 
-  const ImagePlaceHolder({super.key, required this.result});
+  const ImagePlaceholder({super.key, required this.result});
 
   @override
   Widget build(BuildContext context) {

@@ -5,7 +5,6 @@ import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 
 import '../core/exceptions.dart';
-import '../core/openai_client.dart';
 import '../core/url_repository.dart';
 import '../widgets/image_placeholder.dart';
 
@@ -62,8 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(25),
             color: Colors.grey[300],
             child: widget.urlRepository.hasCachedUrl(index)
-                ? ImagePlaceHolder(
-                    result: widget.urlRepository.getCachedUrl(index))
+                ? ImagePlaceholder(
+                    result: widget.urlRepository.requireCachedUrl(index))
                 : FutureBuilder(
                     future: widget.urlRepository.getFutureUrl(index),
                     builder: buildFuture,
@@ -102,11 +101,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget buildFuture(
       _, AsyncSnapshot<Either<HordaException, String>> snapshot) {
-    if (!snapshot.hasData) {
-      return const CircularProgressIndicator();
+    if (snapshot.connectionState != ConnectionState.done) {
+      return const Center(child: CircularProgressIndicator());
     }
     final Either<HordaException, String> result = snapshot.data!;
-    widget.urlRepository.setCachedUrl(index, result);
-    return ImagePlaceHolder(result: result);
+    return ImagePlaceholder(result: result);
   }
 }

@@ -20,7 +20,6 @@ class OpenaiClient {
 
   Future<Either<OpenaiException, String>> generateImageUrl(
       String prompt) async {
-
     try {
       final Response res = await _dio.post("/images/generations",
           data: {"prompt": prompt, "n": 1, "size": "256x256"});

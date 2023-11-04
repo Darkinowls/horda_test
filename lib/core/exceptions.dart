@@ -1,4 +1,4 @@
-abstract class HordaException {
+sealed class HordaException {
   get message;
 
   @override
@@ -11,6 +11,15 @@ class OpenaiException extends HordaException {
   final String _message;
 
   OpenaiException(this._message);
+
+  @override
+  get message => _message;
+}
+
+class UrlRepoException extends HordaException {
+  final String _message;
+
+  UrlRepoException(this._message);
 
   @override
   get message => _message;
