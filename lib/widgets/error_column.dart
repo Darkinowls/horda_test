@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class ErrorColumn extends StatelessWidget {
   final Object error;
 
-  const ErrorColumn({required this.error});
+  const ErrorColumn({super.key, required this.error});
 
   @override
   Widget build(BuildContext context) {

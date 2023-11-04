@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget buildFuture(
       _, AsyncSnapshot<Either<HordaException, String>> snapshot) {
-    if (snapshot.connectionState != ConnectionState.done) {
+    if (!snapshot.hasData) {
       return const CircularProgressIndicator();
     }
     final Either<HordaException, String> result = snapshot.data!;
