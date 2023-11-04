@@ -18,10 +18,12 @@ class HordaNetworkImage extends StatelessWidget {
 
   Widget buildLoadingImage(_, Widget child, ImageChunkEvent? progress) {
     if (progress == null) return child;
-    return CircularProgressIndicator(
-      value: progress.expectedTotalBytes != null
-          ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
-          : null,
+    return Center(
+      child: CircularProgressIndicator(
+        value: progress.expectedTotalBytes != null
+            ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+            : null,
+      ),
     );
   }
 }

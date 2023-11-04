@@ -8,20 +8,16 @@ class ErrorColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(25),
-      color: Colors.grey[300],
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Icon(Icons.error),
-          const SizedBox(
-            height: 25,
-          ),
-          Text(error.toString(), textAlign: TextAlign.center),
-        ],
-      ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Icon(Icons.error),
+        const SizedBox(
+          height: 25,
+        ),
+        Text(error.toString(), textAlign: TextAlign.center),
+      ],
     );
   }
 }
