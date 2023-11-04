@@ -1,26 +1,32 @@
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
-
-import 'consts.dart';
-import 'main.dart';
+import 'package:horda_test/openai_client.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int maxAttempts;
+  final OpenaiClient openaiClient;
+
+  const HomeScreen(
+      {super.key, required this.maxAttempts, required this.openaiClient});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int attempts = maxAttempts;
+  late int attempts;
   int index = 0;
-  final List<Future<String>?> srcList =
-      List.filled(maxAttempts, null, growable: false);
-  final Iterable<String> wordPairs =
-      generateWordPairs().map((WordPair e) => e.join(" ")).take(maxAttempts);
+  late final List<Future<String>?> srcList;
+  late final Iterable<String> wordPairs;
 
   @override
   void initState() {
+    attempts = widget.maxAttempts;
+    srcList = List.filled(widget.maxAttempts, null, growable: false);
+    wordPairs = generateWordPairs()
+        .map((WordPair e) => e.join(" "))
+        .take(widget.maxAttempts);
+
     srcList[index] = generateUrl(wordPairs.elementAt(index));
     super.initState();
   }
@@ -31,7 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<String> generateUrl(String prompt) async {
-    final Future<String> futureUrl = dioClient.generateImageUrl(prompt);
+    final Future<String> futureUrl =
+        widget.openaiClient.generateImageUrl(prompt);
     attempts--;
     return futureUrl;
   }
@@ -71,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 25,
             ),
             ElevatedButton(
-                onPressed: index == maxAttempts - 1
+                onPressed: index == widget.maxAttempts - 1
                     ? null
                     : () => setNextImage(wordPairs.elementAt(index)),
                 child: const Text("Next")),

@@ -6,12 +6,12 @@ import 'package:horda_test/openai_client.dart';
 
 import 'consts.dart';
 
-late final OpenaiClient dioClient;
+late final OpenaiClient _openaiClient;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: envPath);
-  dioClient = OpenaiClient(Dio(), dotenv.env[openaiKey]!);
+  _openaiClient = OpenaiClient(Dio(), dotenv.env[openaiKey]!);
   runApp(const MyApp());
 }
 
@@ -20,10 +20,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'app',
-      home: HomeScreen(),
+      home: HomeScreen(maxAttempts: maxAttempts, openaiClient: _openaiClient),
     );
   }
 }

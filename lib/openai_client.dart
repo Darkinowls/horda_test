@@ -6,6 +6,7 @@ class OpenaiClient {
 
   OpenaiClient(this._dio, this._token) {
     _dio.options.baseUrl = "https://api.openai.com/v1";
+    _dio.options.connectTimeout = const Duration(milliseconds: 5000);
     _dio.options.headers = {
       "Authorization": "Bearer $_token",
       "Content-Type": "application/json"
