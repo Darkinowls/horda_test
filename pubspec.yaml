@@ -34,6 +34,7 @@ dependencies:
   english_words: ^4.0.0
   cached_network_image: ^3.3.0
   flutter_dotenv: ^5.1.0
+  either_dart: ^1.0.0
 
 
   # The following adds the Cupertino Icons font to your application.

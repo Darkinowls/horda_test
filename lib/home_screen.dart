@@ -1,6 +1,11 @@
+import 'dart:collection';
+
+import 'package:either_dart/either.dart';
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:horda_test/openai_client.dart';
+
+import 'exceptions.dart';
 
 class HomeScreen extends StatefulWidget {
   final int maxAttempts;
@@ -16,18 +21,19 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late int attempts;
   int index = 0;
-  late final List<Future<String>?> srcList;
-  late final Iterable<String> wordPairs;
+  late final List<Future<Either<HordaException, String>>?> srcList;
+  late final UnmodifiableListView<String> wordPairs;
 
   @override
   void initState() {
     attempts = widget.maxAttempts;
     srcList = List.filled(widget.maxAttempts, null, growable: false);
-    wordPairs = generateWordPairs()
+    wordPairs = UnmodifiableListView(generateWordPairs()
         .map((WordPair e) => e.join(" "))
-        .take(widget.maxAttempts);
+        .take(widget.maxAttempts)
+        .toList(growable: false));
 
-    srcList[index] = generateUrl(wordPairs.elementAt(index));
+    srcList[index] = generateUrl(wordPairs[index]);
     super.initState();
   }
 
@@ -36,17 +42,19 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  Future<String> generateUrl(String prompt) async {
-    final Future<String> futureUrl =
+  Future<Either<HordaException, String>> generateUrl(String prompt) {
+    final Future<Either<HordaException, String>> futureUrl =
         widget.openaiClient.generateImageUrl(prompt);
     attempts--;
     return futureUrl;
   }
 
-  Future<void> setNextImage(String prompt) async {
+  void setNextImage() {
     index++;
     if (attempts != 0 && srcList[index] == null) {
-      final Future<String> futureUrl = generateUrl(prompt);
+      final String prompt = wordPairs[index];
+      final Future<Either<HordaException, String>> futureUrl =
+          generateUrl(prompt);
       srcList[index] = futureUrl;
     }
     setState(() {});
@@ -55,55 +63,58 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Center(
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        FutureBuilder(
-          future: srcList.elementAt(index),
-          builder: buildFuture,
-        ),
-        const SizedBox(
-          height: 25,
-        ),
-        Text(wordPairs.elementAt(index)),
-        const SizedBox(
-          height: 25,
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-                onPressed: index == 0 ? null : getPrevImage,
-                child: const Text("Prev")),
-            const SizedBox(
-              width: 25,
-            ),
-            ElevatedButton(
-                onPressed: index == widget.maxAttempts - 1
-                    ? null
-                    : () => setNextImage(wordPairs.elementAt(index)),
-                child: const Text("Next")),
-          ],
-        ),
-        const SizedBox(
-          height: 25,
-        ),
-        Text("left: $attempts")
-      ]),
-    ));
+      body: Center(
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          FutureBuilder(
+            future: srcList[index],
+            builder: buildFuture,
+          ),
+          const SizedBox(
+            height: 50,
+          ),
+          Text(wordPairs[index]),
+          const SizedBox(
+            height: 25,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                  onPressed: index == 0 ? null : getPrevImage,
+                  child: const Text("Prev")),
+              const SizedBox(
+                width: 25,
+              ),
+              ElevatedButton(
+                  onPressed:
+                      index == widget.maxAttempts - 1 ? null : setNextImage,
+                  child: const Text("Next")),
+            ],
+          ),
+          const SizedBox(
+            height: 25,
+          ),
+          Text("left: $attempts")
+        ]),
+      ),
+    );
   }
 
-  Widget buildFuture(_, AsyncSnapshot<String> snapshot) {
-    if (snapshot.connectionState == ConnectionState.done) {
-      return Image.network(
-        snapshot.data!,
-        errorBuilder: buildErrorImage,
-        loadingBuilder: buildLoadingImage,
-      );
+  Widget buildFuture(
+      _, AsyncSnapshot<Either<HordaException, String>> snapshot) {
+    if (snapshot.connectionState != ConnectionState.done) {
+      return const CircularProgressIndicator();
     }
-    if (snapshot.hasError) {
-      return _ErrorColumn(error: snapshot.error!);
-    }
-    return const CircularProgressIndicator();
+    final Either<HordaException, String> result = snapshot.data!;
+    return switch (result) {
+      Left() => _ErrorColumn(error: result.value),
+      Right() => Image.network(
+          result.value,
+          loadingBuilder: buildLoadingImage,
+          errorBuilder: (_, __, ___) =>
+              const _ErrorColumn(error: "Failed to load image"),
+        )
+    };
   }
 
   Widget buildLoadingImage(_, Widget child, ImageChunkEvent? progress) {
@@ -114,10 +125,6 @@ class _HomeScreenState extends State<HomeScreen> {
           : null,
     );
   }
-
-  Widget buildErrorImage(_, Object error, __) {
-    return _ErrorColumn(error: error);
-  }
 }
 
 class _ErrorColumn extends StatelessWidget {
@@ -127,7 +134,9 @@ class _ErrorColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return Container(
+      padding: const EdgeInsets.all(25),
+      color: Colors.grey[300],
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -136,7 +145,7 @@ class _ErrorColumn extends StatelessWidget {
           const SizedBox(
             height: 25,
           ),
-          Text("Error: ${error.toString()}", textAlign: TextAlign.center),
+          Text(error.toString(), textAlign: TextAlign.center),
         ],
       ),
     );

@@ -6,9 +6,11 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:dio/dio.dart';
+import 'package:either_dart/either.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:horda_test/consts.dart';
+import 'package:horda_test/exceptions.dart';
 import 'package:horda_test/openai_client.dart';
 
 const imageUrl =
@@ -18,13 +20,7 @@ void main() {
   test("test image url", () async {
     await dotenv.load(fileName: envPath);
     OpenaiClient dioClient = OpenaiClient(Dio(), dotenv.env[openaiKey]!);
-    final url = await dioClient.generateImageUrl("Hello!");
-    print(url);
-    expect(url, isNotEmpty);
+    final Either<HordaException, String> url = await dioClient.generateImageUrl("Hello!");
+    expect(url.isRight, true);
   });
-
-  // test("download image", () {
-  //   OpenaiClient dioClient = OpenaiClient(Dio());
-  //   dioClient.downloadBytes(imageUrl);
-  // });
 }

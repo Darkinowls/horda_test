@@ -1,4 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:either_dart/either.dart';
+
+import 'exceptions.dart';
 
 class OpenaiClient {
   final String _token;
@@ -13,14 +16,20 @@ class OpenaiClient {
       "Authorization": "Bearer $_token",
       "Content-Type": "application/json"
     };
-
   }
 
-  Future<String> generateImageUrl(String prompt) async {
-    await Future.delayed(const Duration(milliseconds: 50));
-    final Response res = await _dio.post("/images/generations",
-        data: {"prompt": prompt, "n": 1, "size": "256x256"});
+  Future<Either<OpenaiException, String>> generateImageUrl(
+      String prompt) async {
+    return Left(OpenaiException("Failed to generate image"));
 
-    return res.data["data"][0]["url"];
+    // try {
+    //   final Response res = await _dio.post("/images/generations",
+    //       data: {"prompt": prompt, "n": 1, "size": "256x256"});
+    //   return Right(res.data["data"][0]["url"]);
+    // } on DioException catch (_) {
+    //   return Left(OpenaiException("Failed to generate image"));
+    // }
   }
 }
+
+
