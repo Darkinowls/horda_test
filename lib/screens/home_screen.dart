@@ -33,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .take(widget.maxAttempts)
         .toList(growable: false));
     widget.urlRepository.generateImageUrl(index, wordPairs[index]);
+    attempts--;
     super.initState();
   }
 

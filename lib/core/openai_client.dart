@@ -25,7 +25,7 @@ class OpenaiClient {
           data: {"prompt": prompt, "n": 1, "size": "256x256"});
       return Right(res.data["data"][0]["url"]);
     } on DioException catch (_) {
-      return Left(OpenaiException("Failed to generate image"));
+      return Left(OpenaiException("Time is out"));
     }
   }
 }
