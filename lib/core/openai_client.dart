@@ -24,7 +24,7 @@ class OpenaiClient {
       final Response res = await _dio.post("/images/generations",
           data: {"prompt": prompt, "n": 1, "size": "256x256"});
       return Right(res.data["data"][0]["url"]);
-    } on DioException catch (_) {
+    } catch (_) {
       return Left(OpenaiException("Time is out"));
     }
   }

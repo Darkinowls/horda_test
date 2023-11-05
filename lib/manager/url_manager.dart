@@ -41,32 +41,35 @@ class UrlManager {
   /// Get next image url.
   /// If status is init, it generates a new url via OpenAI Client
   Future<void> getNextImage(String prompt) async {
-    _emit(state.copyWith(index: state.index + 1));
-    final Status status = state.statusList[state.index];
+    final UrlState newState = state.copyWith(index: state.index + 1);
+    _emit(newState);
+    final Status status = newState.statusList[newState.index];
 
     if (status == Status.init) {
-      _setStatusLoading();
+      _setStatusLoading(newState);
       final Either<OpenaiException, String> urlSolved =
           await _openaiClient.generateImageUrl(prompt);
-      _setStatusResolved(urlSolved);
+      _setStatusResolved(newState, urlSolved);
     }
   }
 
-  void _setStatusLoading() {
-    final List<Status> statusList = [...state.statusList];
-    statusList[state.index] = Status.loading;
-    _emit(state.copyWith(statusList: statusList, attempts: state.attempts - 1));
+  void _setStatusLoading(UrlState newState) {
+    final List<Status> statusList = [...newState.statusList];
+    statusList[newState.index] = Status.loading;
+    _emit(newState.copyWith(
+        statusList: statusList, attempts: newState.attempts - 1));
   }
 
-  void _setStatusResolved(Either<OpenaiException, String> urlSolved) {
+  void _setStatusResolved(
+      UrlState newState, Either<OpenaiException, String> urlSolved) {
     final List<Either<HordaException, String>?> cachedUrlList = [
-      ...state.cachedUrlList
+      ...newState.cachedUrlList
     ];
-    cachedUrlList[state.index] = urlSolved;
-    final List<Status> statusListAgain = [...state.statusList];
-    statusListAgain[state.index] =
+    cachedUrlList[newState.index] = urlSolved;
+    final List<Status> statusListAgain = [...newState.statusList];
+    statusListAgain[newState.index] =
         urlSolved.isRight ? Status.loaded : Status.error;
-    _emit(state.copyWith(
+    _emit(newState.copyWith(
         cachedUrlList: cachedUrlList, statusList: statusListAgain));
   }
 }

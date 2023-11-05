@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:horda_test/widgets/error_column.dart';
 
 import '../manager/url_manager.dart';
-import '../widgets/image_placeholder.dart';
+import '../widgets/horda_network_image.dart';
 
 class HomeScreen extends StatelessWidget {
   final int maxAttempts;
@@ -40,10 +40,10 @@ class HomeScreen extends StatelessWidget {
                   Status.init ||
                   Status.loading =>
                     const Center(child: CircularProgressIndicator()),
-                  Status.loaded =>
-                    ImagePlaceholder(result: urlState.cachedUrlList[index]!),
+                  Status.loaded => HordaNetworkImage(
+                      url: urlState.cachedUrlList[index]!.right),
                   Status.error =>
-                    ErrorColumn(error: urlState.cachedUrlList[index]!),
+                    ErrorColumn(error: urlState.cachedUrlList[index]!.left),
                 };
               },
             ),
