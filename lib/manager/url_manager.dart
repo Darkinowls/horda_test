@@ -10,66 +10,84 @@ part 'url_state.dart';
 class UrlManager {
   final OpenaiClient _openaiClient;
   late UrlState state;
-  final StreamController<UrlState> _streamController =
+  final StreamController<int> _indexController = StreamController.broadcast();
+
+  final StreamController<int> _attemptsController =
       StreamController.broadcast();
 
-  /// Emit new state to the stream.
-  /// If state is the same, it does nothing
-  void _emit(UrlState newState) {
-    if (state == newState) {
-      return;
-    }
-    _streamController.add(newState);
-    state = newState;
-  }
+  final StreamController<Either<HordaException, String>?> _urlController =
+      StreamController.broadcast();
 
   UrlManager(this._openaiClient, int attempts, String firstPrompt) {
     state = UrlState(
-        index: -1,
+        index: 0,
         attempts: attempts,
         cachedUrlList: List.filled(attempts, null, growable: false),
-        statusList: List.filled(attempts, Status.init, growable: false));
-    getNextImage(firstPrompt);
+        isOpenedList: List.filled(attempts, false, growable: false));
+    _generateImageUrl(0, firstPrompt);
   }
 
-  Stream<UrlState> get stream => _streamController.stream.asBroadcastStream();
+  Stream<int> get indexStream => _indexController.stream.asBroadcastStream();
+
+  Stream<int> get attemptsStream =>
+      _attemptsController.stream.asBroadcastStream();
+
+  Stream<Either<HordaException, String>?> get urlStream =>
+      _urlController.stream.asBroadcastStream();
 
   void getPrevImage() {
-    _emit(state.copyWith(index: state.index - 1));
+    final newIndex = state.index - 1;
+    _emitIndex(newIndex);
+    _emitUrlChange(state.cachedUrlList[newIndex]);
   }
 
   /// Get next image url.
-  /// If status is init, it generates a new url via OpenAI Client
+  /// If it is not opened before, it generates a new url via OpenAI Client
   Future<void> getNextImage(String prompt) async {
-    final UrlState newState = state.copyWith(index: state.index + 1);
-    _emit(newState);
-    final Status status = newState.statusList[newState.index];
+    final newIndex = state.index + 1;
+    _emitIndex(newIndex);
+    _emitUrlChange(state.cachedUrlList[newIndex]);
+    final bool isOpened = state.isOpenedList[newIndex];
 
-    if (status == Status.init) {
-      _setStatusLoading(newState);
-      final Either<OpenaiException, String> urlSolved =
-          await _openaiClient.generateImageUrl(prompt);
-      _setStatusResolved(newState, urlSolved);
+    if (isOpened == true) {
+      return;
     }
+    _generateImageUrl(newIndex, prompt);
   }
 
-  void _setStatusLoading(UrlState newState) {
-    final List<Status> statusList = [...newState.statusList];
-    statusList[newState.index] = Status.loading;
-    _emit(newState.copyWith(
-        statusList: statusList, attempts: newState.attempts - 1));
+  /// Generates a new url via OpenAI Client.
+  /// It sets the solved value to the list under the index
+  _generateImageUrl(int index, String prompt) async {
+
+    _setIsOpened(index);
+    final Either<OpenaiException, String> urlSolved =
+        await _openaiClient.generateImageUrl(prompt);
+    _setSolved(index, urlSolved);
   }
 
-  void _setStatusResolved(
-      UrlState newState, Either<OpenaiException, String> urlSolved) {
-    final List<Either<HordaException, String>?> cachedUrlList = [
-      ...newState.cachedUrlList
-    ];
-    cachedUrlList[newState.index] = urlSolved;
-    final List<Status> statusListAgain = [...newState.statusList];
-    statusListAgain[newState.index] =
-        urlSolved.isRight ? Status.loaded : Status.error;
-    _emit(newState.copyWith(
-        cachedUrlList: cachedUrlList, statusList: statusListAgain));
+  void _emitIndex(int index) {
+    state = state.copyWith(index: index);
+    _indexController.add(index);
+  }
+
+  void _emitUrlChange(Either<HordaException, String>? url) {
+    _urlController.add(url);
+  }
+
+  void _emitAttempts(int attempts) {
+    state = state.copyWith(attempts: attempts);
+    _attemptsController.add(attempts);
+  }
+
+  void _setIsOpened(int index) {
+    state.isOpenedList[index] = true;
+    _emitAttempts(state.attempts - 1);
+  }
+
+  void _setSolved(int index, Either<OpenaiException, String> urlSolved) {
+    state.cachedUrlList[index] = urlSolved;
+    if (state.index == index) {
+      _emitUrlChange(urlSolved);
+    }
   }
 }

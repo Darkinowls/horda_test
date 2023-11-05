@@ -1,9 +1,11 @@
 import 'dart:collection';
 
+import 'package:either_dart/either.dart';
 import 'package:flutter/material.dart';
 
 import 'package:horda_test/widgets/error_column.dart';
 
+import '../core/exceptions.dart';
 import '../manager/url_manager.dart';
 import '../widgets/horda_network_image.dart';
 
@@ -28,22 +30,20 @@ class HomeScreen extends StatelessWidget {
             width: 256,
             padding: const EdgeInsets.all(25),
             color: Colors.grey[300],
-            child: StreamBuilder(
-              initialData: urlManager.state,
-              stream: urlManager.stream,
-              builder: (_, AsyncSnapshot<UrlState> snapshot) {
-                final UrlState urlState = snapshot.data!;
-                final int index = urlState.index;
-                final Status status = urlState.statusList[index];
+            child: StreamBuilder<Either<HordaException, String>?>(
+              initialData:
+                  urlManager.state.cachedUrlList[urlManager.state.index],
+              stream: urlManager.urlStream,
+              builder:
+                  (_, AsyncSnapshot<Either<HordaException, String>?> snapshot) {
+                if (snapshot.data == null) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final Either<HordaException, String> index = snapshot.data!;
 
-                return switch (status) {
-                  Status.init ||
-                  Status.loading =>
-                    const Center(child: CircularProgressIndicator()),
-                  Status.loaded => HordaNetworkImage(
-                      url: urlState.cachedUrlList[index]!.right),
-                  Status.error =>
-                    ErrorColumn(error: urlState.cachedUrlList[index]!.left),
+                return switch (index) {
+                  Left() => ErrorColumn(error: index.left),
+                  Right() => HordaNetworkImage(url: index.right),
                 };
               },
             ),
@@ -51,11 +51,11 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(
             height: 50,
           ),
-          StreamBuilder(
-              initialData: urlManager.state,
-              stream: urlManager.stream,
-              builder: (_, AsyncSnapshot<UrlState> snapshot) {
-                return Text(wordPairs[snapshot.data!.index]);
+          StreamBuilder<int>(
+              initialData: urlManager.state.index,
+              stream: urlManager.indexStream,
+              builder: (_, AsyncSnapshot<int> snapshot) {
+                return Text(wordPairs[snapshot.data!]);
               }),
           const SizedBox(
             height: 25,
@@ -63,12 +63,12 @@ class HomeScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              StreamBuilder(
-                  initialData: urlManager.state,
-                  stream: urlManager.stream,
-                  builder: (_, AsyncSnapshot<UrlState> snapshot) {
+              StreamBuilder<int>(
+                  initialData: urlManager.state.index,
+                  stream: urlManager.indexStream,
+                  builder: (_, AsyncSnapshot<int> snapshot) {
                     return ElevatedButton(
-                        onPressed: snapshot.data!.index == 0
+                        onPressed: snapshot.data! == 0
                             ? null
                             : urlManager.getPrevImage,
                         child: const Text("Prev"));
@@ -76,15 +76,15 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(
                 width: 25,
               ),
-              StreamBuilder(
-                  initialData: urlManager.state,
-                  stream: urlManager.stream,
-                  builder: (_, AsyncSnapshot<UrlState> snapshot) {
-                    final index = snapshot.data!.index;
+              StreamBuilder<int>(
+                  initialData: urlManager.state.index,
+                  stream: urlManager.indexStream,
+                  builder: (_, AsyncSnapshot<int> snapshot) {
+                    final index = snapshot.data!;
                     return ElevatedButton(
                         onPressed: index == maxAttempts - 1
                             ? null
-                            : () => urlManager.getNextImage(wordPairs[index]),
+                            : () => urlManager.getNextImage(wordPairs[index+1]),
                         child: const Text("Next"));
                   }),
             ],
@@ -92,11 +92,11 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(
             height: 25,
           ),
-          StreamBuilder(
-              initialData: urlManager.state,
-              stream: urlManager.stream,
-              builder: (_, AsyncSnapshot<UrlState> snapshot) {
-                return Text("left: ${snapshot.data!.attempts}");
+          StreamBuilder<int>(
+              initialData: urlManager.state.attempts,
+              stream: urlManager.attemptsStream,
+              builder: (_, AsyncSnapshot<int> snapshot) {
+                return Text("left: ${snapshot.data!}");
               })
         ]),
       ),

@@ -14,6 +14,7 @@ late final UnmodifiableListView<String> _wordPairs;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await dotenv.load(fileName: envPath);
   final OpenaiClient openaiClient = OpenaiClient(Dio(), dotenv.env[openaiKey]!);
   _wordPairs = UnmodifiableListView(generateWordPairs()
@@ -21,6 +22,7 @@ Future<void> main() async {
       .map((WordPair e) => e.join(" "))
       .toList());
   _urlManager = UrlManager(openaiClient, maxAttempts, _wordPairs.first);
+
   runApp(const MyApp());
 }
 
