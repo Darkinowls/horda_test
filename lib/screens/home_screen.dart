@@ -39,11 +39,11 @@ class HomeScreen extends StatelessWidget {
                 if (snapshot.data == null) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final Either<HordaException, String> index = snapshot.data!;
+                final Either<HordaException, String> solved = snapshot.data!;
 
-                return switch (index) {
-                  Left() => ErrorColumn(error: index.left),
-                  Right() => HordaNetworkImage(url: index.right),
+                return switch (solved) {
+                  Left() => ErrorColumn(error: solved.left),
+                  Right() => HordaNetworkImage(url: solved.right),
                 };
               },
             ),
@@ -67,8 +67,9 @@ class HomeScreen extends StatelessWidget {
                   initialData: urlManager.state.index,
                   stream: urlManager.indexStream,
                   builder: (_, AsyncSnapshot<int> snapshot) {
+                    final index = snapshot.data!;
                     return ElevatedButton(
-                        onPressed: snapshot.data! == 0
+                        onPressed: index == 0
                             ? null
                             : urlManager.getPrevImage,
                         child: const Text("Prev"));
@@ -80,7 +81,7 @@ class HomeScreen extends StatelessWidget {
                   initialData: urlManager.state.index,
                   stream: urlManager.indexStream,
                   builder: (_, AsyncSnapshot<int> snapshot) {
-                    final index = snapshot.data!;
+                    final int index = snapshot.data!;
                     return ElevatedButton(
                         onPressed: index == maxAttempts - 1
                             ? null
@@ -96,7 +97,8 @@ class HomeScreen extends StatelessWidget {
               initialData: urlManager.state.attempts,
               stream: urlManager.attemptsStream,
               builder: (_, AsyncSnapshot<int> snapshot) {
-                return Text("left: ${snapshot.data!}");
+                final int attempts = snapshot.data!;
+                return Text("left: $attempts");
               })
         ]),
       ),
