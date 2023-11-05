@@ -15,12 +15,3 @@ class OpenaiException extends HordaException {
   @override
   get message => _message;
 }
-
-class UrlRepoException extends HordaException {
-  final String _message;
-
-  UrlRepoException(this._message);
-
-  @override
-  get message => _message;
-}

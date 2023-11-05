@@ -12,7 +12,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:horda_test/core/consts.dart';
 import 'package:horda_test/core/exceptions.dart';
 import 'package:horda_test/core/openai_client.dart';
-import 'package:horda_test/core/url_repository.dart';
 
 void main() {
   test("test image url", () async {
@@ -21,16 +20,5 @@ void main() {
     final Either<HordaException, String> url =
         await dioClient.generateImageUrl("Hello!");
     expect(url.isRight, true);
-  });
-
-  test("test url repo", () async {
-    await dotenv.load(fileName: envPath);
-    OpenaiClient dioClient = OpenaiClient(Dio(), dotenv.env[openaiKey]!);
-    final UrlRepository urlRepository = UrlRepository(dioClient, maxAttempts);
-    urlRepository.generateImageUrl(0, "Hello!");
-    await Future.delayed(const Duration(seconds: 10));
-    final Either<HordaException, String> url = urlRepository.requireCachedUrl(0);
-    expect(url.isRight, true);
-    print(url.right);
   });
 }
