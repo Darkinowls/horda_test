@@ -12,7 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:horda_test/core/consts.dart';
 import 'package:horda_test/core/exceptions.dart';
 import 'package:horda_test/core/openai_client.dart';
-import 'package:horda_test/core/url_repository.dart';
+import 'package:horda_test/repositories/url_repository.dart';
 
 void main() {
   test("test image url", () async {

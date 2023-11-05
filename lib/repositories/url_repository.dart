@@ -17,6 +17,7 @@ class UrlRepository {
     return _futureUrlList[index];
   }
 
+  /// Generate url and save it to future and cache(after some time) lists
   void generateImageUrl(int index, String prompt) {
     final Future<Either<HordaException, String>> futureUrl =
         _openaiClient.generateImageUrl(prompt);

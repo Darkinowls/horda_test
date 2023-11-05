@@ -5,7 +5,7 @@ import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 
 import '../core/exceptions.dart';
-import '../core/url_repository.dart';
+import '../repositories/url_repository.dart';
 import '../widgets/image_placeholder.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
+  /// If there is no future url, generate it and decrease attempts
   void setNextImage() {
     index++;
     if (attempts != 0 && widget.urlRepository.getFutureUrl(index) == null) {
